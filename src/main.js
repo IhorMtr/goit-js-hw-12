@@ -31,7 +31,7 @@ async function handleSubmit(event) {
     oldKeyWord = keyWord;
   }
   try {
-    const { hits } = await getImagesByQuery(inputValue, page);
+    const { hits, totalHits } = await getImagesByQuery(inputValue, page);
     if (hits.length === 0) {
       iziToast.show({
         message:
@@ -40,6 +40,8 @@ async function handleSubmit(event) {
         messageColor: '#fff',
         backgroundColor: 'red',
       });
+    } else if (Math.ceil(totalHits / 15) - page <= 0) {
+      createGallery(hits);
     } else {
       createGallery(hits);
       showLoadMoreButton();
@@ -66,7 +68,7 @@ async function handleLoading() {
   try {
     const { hits, totalHits } = await getImagesByQuery(keyWord, page);
     let pagesLeft = Math.ceil(totalHits / 15) - page;
-    if (pagesLeft > 0) {
+    if (pagesLeft >= 0) {
       createGallery(hits);
       window.scrollBy({
         top: galleryItemHeight,
