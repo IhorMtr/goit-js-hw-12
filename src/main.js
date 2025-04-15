@@ -24,6 +24,8 @@ async function handleSubmit(event) {
   event.preventDefault();
   showLoader();
   clearGallery();
+  hideLoadMoreButton();
+
   const inputValue = form.elements['search-text'].value.trim();
   keyWord = inputValue;
   if (oldKeyWord !== keyWord) {
@@ -40,11 +42,14 @@ async function handleSubmit(event) {
         messageColor: '#fff',
         backgroundColor: 'red',
       });
-    } else if (Math.ceil(totalHits / 15) - page <= 0) {
-      createGallery(hits);
     } else {
       createGallery(hits);
-      showLoadMoreButton();
+      const totalPages = Math.ceil(totalHits / 15);
+      if (page >= totalPages) {
+        hideLoadMoreButton();
+      } else {
+        showLoadMoreButton();
+      }
     }
   } catch (error) {
     iziToast.show({
@@ -67,23 +72,22 @@ async function handleLoading() {
   hideLoadMoreButton();
   try {
     const { hits, totalHits } = await getImagesByQuery(keyWord, page);
-    let pagesLeft = Math.ceil(totalHits / 15) - page;
-    if (pagesLeft >= 0) {
-      createGallery(hits);
-      window.scrollBy({
-        top: galleryItemHeight,
-        behavior: 'smooth',
-      });
-    } else {
+    createGallery(hits);
+    window.scrollBy({
+      top: galleryItemHeight,
+      behavior: 'smooth',
+    });
+    const totalPages = Math.ceil(totalHits / 15);
+    if (page >= totalPages) {
       iziToast.show({
         message: "We're sorry, but you've reached the end of search results.",
         position: 'topRight',
         messageColor: '#fff',
         backgroundColor: 'red',
       });
-      hideLoader();
       hideLoadMoreButton();
-      return;
+    } else {
+      showLoadMoreButton();
     }
   } catch (error) {
     iziToast.show({
@@ -94,5 +98,4 @@ async function handleLoading() {
     });
   }
   hideLoader();
-  showLoadMoreButton();
 }
